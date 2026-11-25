@@ -48,9 +48,6 @@ app.use(express.static(path.join(__dirname,"/public")));
 
 const store = MongoStore.create({  // we create a mongostore for storing session information
   mongoUrl : dbUrl,
-  crypto : {
-    secret: process.env.SECRET,
-  },
   touchAfter: 24 * 3600,
 });
 
@@ -103,9 +100,10 @@ app.use((req,res,next) => {
 app.use((err,req,res,next) => {
   let{statusCode = 500, message = "Something went wrong!"} = err;
   console.log("Error occurred:", err); 
-  // console.log("Stack trace:", err.stack); // Add this line
+  res.locals.currUser = req.user || null;
+  res.locals.success = [];
+  res.locals.error = [];
   res.status(statusCode).render("error.ejs",{message});
-  // res.status(statusCode).send(message);
 });
 
 const port = process.env.PORT || 8080;
