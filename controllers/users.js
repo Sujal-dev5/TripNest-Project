@@ -42,3 +42,36 @@ module.exports.logout =   (req,res,next) => {
         res.redirect("/listings");
     });
 }; //
+
+module.exports.renderForgotPasswordForm = (req, res) => {
+    res.render("users/forgot.ejs");
+};
+
+module.exports.resetPassword = async (req, res) => {
+    try {
+        let { username, email, newPassword, confirmPassword } = req.body;
+        if (!username || !email || !newPassword || !confirmPassword) {
+            req.flash("error", "All fields are required.");
+            return res.redirect("/forgot-password");
+        }
+        if (newPassword !== confirmPassword) {
+            req.flash("error", "Passwords do not match.");
+            return res.redirect("/forgot-password");
+        }
+        const user = await User.findOne({
+            username: username.trim(),
+            email: { $regex: new RegExp("^" + email.trim() + "$", "i") },
+        });
+        if (!user) {
+            req.flash("error", "No user found with the provided username and email.");
+            return res.redirect("/forgot-password");
+        }
+        await user.setPassword(newPassword);
+        await user.save();
+        req.flash("success", "Password has been reset successfully! Please log in with your new password.");
+        res.redirect("/login");
+    } catch (err) {
+        req.flash("error", err.message || "Failed to reset password.");
+        res.redirect("/forgot-password");
+    }
+};
