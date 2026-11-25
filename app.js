@@ -48,15 +48,15 @@ app.use(express.static(path.join(__dirname,"/public")));
 
 const store = MongoStore.create({  // we create a mongostore for storing session information
   mongoUrl : dbUrl,
-  cyrpto : {
+  crypto : {
     secret: process.env.SECRET,
   },
   touchAfter: 24 * 3600,
 });
 
-store.on("error", ()=> {
-  console.log("ERROR in MONGO SESSION STORE", err)
-})
+store.on("error", (err) => {
+  console.log("ERROR in MONGO SESSION STORE", err);
+});
 
 const sessionOptions = { 
   store,   // now our session information is stored in ATLASDB
@@ -71,9 +71,10 @@ const sessionOptions = {
 };
 
 
-// app.get("/", (req , res) => {
-//   res.send("HI, I am root");
-// });
+// Root route redirecting to listings
+app.get("/", (req, res) => {
+  res.redirect("/listings");
+});
 
 app.use(session(sessionOptions));
 app.use(flash());
@@ -107,7 +108,8 @@ app.use((err,req,res,next) => {
   // res.status(statusCode).send(message);
 });
 
-app.listen(8080, () => {
-    console.log("server is listening to the port 8080");
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+    console.log(`server is listening to the port ${port}`);
 });
 
